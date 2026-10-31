@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Meridian · Workforce Capability View</title>
+<style>
+:root{--bg:#EEF1F4;--pn:#fff;--ink:#14212E;--mu:#526170;--ln:#D3DAE1;--tl:#0B6B5C;--ht:#C2410C;--am:#8A5A0B;--amb:#F6E8CC;--hd:Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;--bd:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--bd);display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+nav{background:var(--ink);color:#E6ECF1;padding:28px 18px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+nav b{font:600 20px var(--hd);padding:0 10px 4px}nav small{color:#A9B7C4;padding:0 10px 18px;font-size:13px}
+nav button{all:unset;cursor:pointer;padding:10px;border-radius:8px;color:#C9D4DE;font-size:15px}
+nav button[aria-current=step]{background:#24384C;color:#fff}nav button:hover{background:#1D2F42}
+nav .tag{margin-top:auto;font-size:12px;color:#A9B7C4;padding:10px}
+button:focus-visible,input:focus-visible{outline:3px solid #2F7FD1;outline-offset:2px}
+main{padding:36px 48px;max-width:1120px}
+h1{font:600 32px/1.2 var(--hd);margin:0 0 6px}.sub{color:var(--mu);margin:0 0 24px;max-width:70ch}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:22px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.mt{margin-top:16px}
+.why{all:unset;cursor:pointer;border-bottom:1.5px dotted var(--mu);font-weight:600}.why:hover{color:var(--tl)}
+.cta{all:unset;cursor:pointer;background:var(--tl);color:#fff;padding:11px 18px;border-radius:8px;font-weight:600}.cta:hover{background:#085346}
+.ghost{all:unset;cursor:pointer;border:1px solid var(--ink);padding:9px 14px;border-radius:8px;font-weight:600}.ghost:hover{background:#fff}
+.row{display:grid;grid-template-columns:230px 1fr 130px;gap:14px;align-items:center;padding:7px 0}
+.bar{height:26px;background:#DDE3E9;border-radius:6px;overflow:hidden;display:flex}.bar i{display:block;height:100%}
+.hatch{background:repeating-linear-gradient(45deg,#E4E8EC 0 6px,#CBD2D9 6px 8px)}
+.big{font:600 40px/1.1 var(--hd)}.mu{color:var(--mu)}.sm{font-size:14px}
+.ev{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600}
+.ev:before{content:"";width:12px;height:12px;border-radius:2px;border:2px solid var(--tl)}
+.ev.V:before{background:var(--tl)}.ev.O:before{background:linear-gradient(90deg,var(--tl) 50%,#fff 50%)}
+.ev.I:before{border-color:var(--am)}.ev.U:before{border:2px dashed #6B7886}
+table{width:100%;border-collapse:collapse}th{text-align:left;font-size:14px;color:var(--mu);border-bottom:2px solid var(--ink);padding:8px 6px}td{padding:10px 6px;border-bottom:1px solid var(--ln)}
+.pl{all:unset;cursor:pointer;display:block;width:100%;padding:11px 12px;border:1px solid var(--ln);border-radius:8px;background:#fff;margin-bottom:8px}.pl[aria-pressed=true]{border:2px solid var(--tl);padding:10px 11px}
+.note{background:var(--amb);border:1px solid #E5C79B;border-radius:10px;padding:14px 16px}
+label{display:block;font-weight:600;margin-top:14px}input[type=range]{width:100%;accent-color:var(--tl)}
+#dr{position:fixed;right:0;top:0;height:100vh;width:380px;background:#fff;border-left:1px solid var(--ln);box-shadow:-8px 0 24px rgba(20,33,46,.12);padding:26px;transform:translateX(105%);transition:transform .18s;overflow:auto}
+#dr.o{transform:none}#dr h2{font:600 22px var(--hd);margin:0 0 10px}#dr dt{font-weight:600;margin-top:12px;font-size:14px;color:var(--mu)}#dr dd{margin:2px 0 0}
+@media(max-width:900px){body{grid-template-columns:1fr}nav{position:static;height:auto;flex-direction:row;flex-wrap:wrap}nav .tag,nav small{display:none}main{padding:24px}.g2,.g3{grid-template-columns:1fr}.row{grid-template-columns:1fr}#dr{width:100%}}
+@media(prefers-reduced-motion:reduce){#dr{transition:none}}
+</style></head><body>
+<nav aria-label="Journey"><b>Meridian</b><small>Workforce capability view</small><div id="st" style="display:contents"></div><div class="tag">All people and counts here are illustrative. Open any figure for its basis.</div></nav>
+<main id="m" tabindex="-1"></main>
+<aside id="dr" aria-label="Basis of this figure"></aside>
+<script>
+const $=s=>document.querySelector(s);
+const STEPS=["The question","Where exposure sits","Metering workforce","One person","Decision"];
+let s=0,strict=false,pi=0,E={rate:60,R:20,C:120,r:50};
+const F=[["Field metering",6000,70],["Customer service and billing",5000,50],["Back-office administration",4500,45],["Plant operations",14000,15],["Transmission and distribution",9000,20],["Procurement and logistics",3000,30],["Engineering and planning",5000,15],["Corporate and management",5500,10]];
+const G=[["Ready now",1380,.64,"#0B6B5C"],["Reskill in 3 to 6 months",2160,.41,"#3F8F7F"],["Longer path",1200,.33,"#B9852E"],["Not yet assessed",1260,0,"#8794A1"]];
+const L={V:"Verified",O:"Observed",I:"Inferred",U:"Unknown"};
+const SK=["Electrical safety","Meter installation","Handheld and IoT configuration","Customer premises protocol"];
+const P=[["A-0412","Grade 4","Region 3",[[4,"V","Certification record, 2024"],[4,"V","Assessment, 2023"],[2,"I","Course titles only"],[3,"O","Supervisor note, 2025"]]],
+["B-0733","Grade 4","Region 5",[[4,"V","Certification record, 2024"],[4,"V","Assessment, 2024"],[3,"V","Vendor course assessment, 2025"],[3,"O","Supervisor note, 2025"]]],
+["A-1187","Grade 3","Region 1",[[3,"O","Supervisor note, 2025"],[3,"O","Supervisor note, 2025"],[0,"U","No record"],[2,"I","Job title only"]]],
+["C-2250","Grade 2","Region 2",[[2,"I","Job title only"],[2,"I","Course titles only"],[0,"U","No record"],[0,"U","No record"]]]];
+const W={d4200:["~4,200 role-equivalents of work","Derived from case facts","6,000 people x ~70% automatable within 18 months","Medium","This is work, not headcount. It does not say 4,200 people leave. Redeployment depends on funded demand."],
+ill:["Readiness split","Illustrative sample","Invented to show the screen. Replace with resolved HRIS, Moodle and regional data.","Not applicable","Do not quote these counts."],
+act:["People you can act on today","Computed on this screen","Sum of each group size x its share with verified or observed evidence","Follows the sample","Inferred and unknown evidence never supports a placement or surplus decision. It only triggers an assessment."],
+econ:["Scenario result","Computed from the sliders","Net = placed x (loaded cost x realized share - reskilling) - Rp 3,500M fee. Placed = 4,200 x placement rate.","Low. Every input is an assumption","Benefit counts only where Finance confirms a cashable budget line. Payroll is off-limits, so loaded cost needs HR grade-band ranges."]};
+F.forEach((f,i)=>W["f"+i]=[f[0],i?"Assumption from sector patterns":"Day-30 analysis (case finding)",i?"Replace with measured task data by Day 60":"Task analysis and procurement plan for smart meters, IoT and AI operations",i?"Low":"Medium",i?"Not measured yet.":"Confirm the task-level basis before the Board sees it."]);
+const n=x=>Math.round(x).toLocaleString("en-US");
+const why=(k,t)=>`<button class="why" data-k="${k}">${t}</button>`;
+function rail(){$("#st").innerHTML=STEPS.map((t,i)=>`<button data-s="${i}" ${i==s?'aria-current="step"':''}>${i+1}. ${t}</button>`).join("")}
+function S0(){return`<h1>Which of our people will AI displace, and what do we do with them?</h1><p class="sub">You asked for a way to run the workforce differently on top of what you already have. Three limits shape everything here.</p>
+<div class="g3"><div class="card"><b>No layoffs</b><p class="mu">The plan only describes redeployment. No screen produces a surplus list.</p></div><div class="card"><b>No system replacement</b><p class="mu">Reads from SAP SuccessFactors, Moodle and regional tools as they are.</p></div><div class="card"><b>No payroll data</b><p class="mu">Everything works without compensation data. Costs are labelled assumptions.</p></div></div>
+<div class="card mt"><b>What Day 30 found</b><p class="big">${why("d4200","~4,200")} <span style="font-size:22px">role-equivalents of metering work</span></p><p class="mu">Field Metering and Manual Operations: about 6,000 people, about 70% automatable within 18 months.</p><button class="cta" data-s="1">See where exposure sits</button></div>`}
+function S1(){const mx=4200;return`<h1>Metering is the highest rate; volume tells a second story</h1><p class="sub">Work displaced in full-time equivalents, by job family. Only metering comes from Day-30 analysis.</p><div class="card">`+F.map((f,i)=>{const d=f[1]*f[2]/100;return`<div class="row"><span>${why("f"+i,f[0])}</span><div class="bar"><i style="width:${d/mx*100}%;background:${f[2]>=45?'var(--ht)':'#4A6278'}"></i></div><span class="sm">${n(d)} FTE · ${f[2]}%${i?' (A)':''}</span></div>`}).join("")+`</div><div class="note mt">Three high-rate families hold about 59% of the 14,825 displaced FTE. Rates marked (A) are assumptions until measured.</div><p><button class="cta" data-s="2">Open Field Metering</button></p>`}
+function S2(){const tot=G.reduce((a,g)=>a+g[1],0),ok=G.reduce((a,g)=>a+g[1]*g[2],0);
+const bar=G.map(g=>strict?`<i style="width:${g[1]/tot*g[2]*100}%;background:${g[3]}"></i><i class="hatch" style="width:${g[1]/tot*(1-g[2])*100}%"></i>`:`<i style="width:${g[1]/tot*100}%;background:${g[3]}"></i>`).join("");
+return`<h1>${strict?`Only ${Math.round(ok/tot*100)}% of the family can be acted on with defensible evidence`:'Field Metering by readiness to redeploy'}</h1><p class="sub">${why("ill","Illustrative sample")} of about 6,000 people. Toggle the evidence filter to see what the data really supports.</p>
+<div class="card"><div class="bar" style="height:54px">${bar}</div><div class="g2 mt" style="grid-template-columns:repeat(4,1fr)">${G.map(g=>`<div><b style="color:${g[3]}">${g[0]}</b><br>${n(g[1])}<br><span class="sm mu">${Math.round(g[2]*100)}% verified or observed</span></div>`).join("")}</div>
+<p class="mt"><button class="ghost" data-t="1" aria-pressed="${strict}">${strict?'Show everyone':'Count only verified and observed evidence'}</button></p></div>
+<div class="note mt">${strict?`${why("act",n(ok)+" of "+n(tot)+" people")} have evidence strong enough to act on today. The hatched part needs an assessment first. Nobody is classified as surplus from this screen.`:'This view counts every person, including those whose skills are only inferred or unknown.'}</div><p><button class="cta" data-s="3">Open a person record</button></p>`}
+function S3(){const p=P[pi],sk=p[3];const ok=sk.every(x=>x[0]>=3&&"VO".includes(x[1])),gapEv=sk.some(x=>x[0]<3&&"VO".includes(x[1])),weak=sk.some(x=>"IU".includes(x[1]));
+const d=weak?["Invite to assessment","Some skills rest on inferred or missing evidence. Placement and surplus conclusions are not allowed yet."]:ok?["Eligible for placement review","Evidence supports the match. A named person still approves, and funded demand must exist."]:["Offer training","The gap is evidenced. Offer a learning path before any match."];
+return`<h1>One person, one path, and what you may decide</h1><p class="sub">Target band: smart-meter installation and service (needs level 3 or more in each skill).</p><div class="g2" style="grid-template-columns:230px 1fr"><div>${P.map((q,i)=>`<button class="pl" data-p="${i}" aria-pressed="${i==pi}"><b>${q[0]}</b><br><span class="sm mu">${q[1]} · ${q[2]}</span></button>`).join("")}</div>
+<div class="card"><table><tr><th>Skill</th><th>Level</th><th>Evidence</th><th>Source</th></tr>${SK.map((k,i)=>`<tr><td>${k}</td><td>${sk[i][0]?sk[i][0]+' of 5':'Unknown'}</td><td><span class="ev ${sk[i][1]}">${L[sk[i][1]]}</span></td><td class="sm mu">${sk[i][2]}</td></tr>`).join("")}</table>
+<div class="note mt"><b>${d[0]}</b><br>${d[1]}</div><p class="sm mu">Evidence from before 2023 performance data is excluded. Confidence is ${weak?'low':'medium'}.</p></div></div><p><button class="cta" data-s="4">See the Board view</button></p>`}
+function S4(){const P4=4200*E.rate/100,k=E.C*E.r/100-E.R,net=P4*k-3500,cost=P4*E.R+3500;
+const sl=(id,l,mn,mx,st,u)=>`<label for="${id}">${l}: <output id="o_${id}">${E[id]}</output>${u} <span class="sm mu">(assumption)</span></label><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${E[id]}">`;
+return`<h1>Does redeployment pay back the Rp 3.5B?</h1><p class="sub">Move the assumptions. Nothing here is a forecast; benefit counts only where Finance confirms a cashable budget line.</p><div class="g2"><div class="card">${sl("rate","Placement rate",40,75,5,"%")}${sl("R","Reskilling cost per person",15,25,1," Rp M")}${sl("C","Loaded cost per field employee",100,140,5," Rp M per year")}${sl("r","Benefit that is cashable and realized in year 1",25,75,5,"%")}</div>
+<div class="card" id="out"></div></div><div class="note mt"><b>Recommendation.</b> Approve the Field Metering lighthouse. Withhold enterprise rollout and any ROI commitment until demand, evidence quality and trust gates pass at Day 90.</div>`}
+function out(){const P4=4200*E.rate/100,k=E.C*E.r/100-E.R,net=P4*k-3500,cost=P4*E.R+3500,be=k>0?3500/k:Infinity;
+$("#out").innerHTML=`<span class="mu">Net value, year 1</span><p class="big">${why("econ","Rp "+(net/1000).toFixed(1)+"B")}</p><p>Program return: <b>${Math.round(net/cost*100)}%</b> on Rp ${(cost/1000).toFixed(1)}B total cost</p><p>People placed: <b>${n(P4)}</b></p><p>Break-even: <b>${isFinite(be)?n(be)+' people':'not reachable'}</b></p>${E.R>=E.C*E.r/100?'<div class="note">At these inputs, each placement costs more than it returns in year 1.</div>':''}`}
+function R(){$("#m").innerHTML=[S0,S1,S2,S3,S4][s]();rail();if(s==4)out()}
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+if(b.dataset.s!=null){s=+b.dataset.s;R();scrollTo(0,0);$("#m").focus()}
+else if(b.dataset.t){strict=!strict;R()}
+else if(b.dataset.p!=null){pi=+b.dataset.p;R()}
+else if(b.dataset.k){const w=W[b.dataset.k];$("#dr").innerHTML=`<button class="ghost" id="x">Close</button><h2 style="margin-top:16px">${w[0]}</h2><dl><dt>Type</dt><dd>${w[1]}</dd><dt>Based on</dt><dd>${w[2]}</dd><dt>Confidence</dt><dd>${w[3]}</dd><dt>What to challenge</dt><dd>${w[4]}</dd></dl>`;$("#dr").classList.add("o");$("#x").focus()}
+else if(b.id=="x")$("#dr").classList.remove("o")});
+document.addEventListener("input",e=>{if(e.target.type=="range"){E[e.target.id]=+e.target.value;$("#o_"+e.target.id).textContent=e.target.value;out()}});
+document.addEventListener("keydown",e=>{if(e.key=="Escape")$("#dr").classList.remove("o")});
+R();
+</script></body></html>
