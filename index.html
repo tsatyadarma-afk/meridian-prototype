@@ -60,7 +60,7 @@
   .brand-name { font-weight: 700; font-size: 14px; line-height: 1.2; }
   .brand-sub { font-size: 11px; opacity: 0.55; margin-top: 2px; }
 
-  nav.nav { display: flex; gap: 2px; }
+  nav.nav { display: flex; gap: 2px; flex-wrap: wrap; }
   .nav-item {
     background: none; border: none; color: rgba(255,255,255,0.6);
     padding: 8px 14px; font-size: 13px; font-weight: 500;
@@ -150,7 +150,7 @@
     line-height: 1; margin: 10px 0 4px;
     letter-spacing: -1px;
   }
-  .kpi-value.small { font-size: 28px; letter-spacing: -0.5px; }
+  .kpi-value.small { font-size: 22px; letter-spacing: -0.5px; }
   .kpi-context { font-size: 12px; color: var(--grey); margin-bottom: 12px; }
   .kpi-badges { display: flex; gap: 6px; margin-top: auto; flex-wrap: wrap; }
 
@@ -268,14 +268,29 @@
     vertical-align: middle;
   }
   table.exposure tr:last-child td { border-bottom: none; }
-  table.exposure tbody tr { transition: background 0.1s; cursor: pointer; }
-  table.exposure tbody tr:hover { background: var(--cream); }
+  table.exposure tbody tr { transition: background 0.1s; }
+  table.exposure tbody tr[onclick] { cursor: pointer; }
+  table.exposure tbody tr[onclick]:hover { background: var(--cream); }
   table.exposure .family-name { font-weight: 600; color: var(--navy); }
   table.exposure .pop { color: var(--grey); font-size: 12px; }
   .exposure-meter { display: flex; align-items: center; gap: 8px; }
   .exposure-meter .track { flex: 1; max-width: 100px; height: 6px; background: var(--line-2); border-radius: 3px; overflow: hidden; }
   .exposure-meter .fill { height: 100%; border-radius: 3px; }
   .exposure-meter .pct { font-weight: 700; font-size: 12px; min-width: 38px; text-align: right; }
+
+  /* ---------- Sankey panel ---------- */
+  .sankey-panel {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 24px 12px;
+    margin-bottom: 20px;
+  }
+  .sankey-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  .sankey-wrap svg { width: 100%; height: auto; display: block; }
 
   /* ---------- Redeployment Simulator (AHA) ---------- */
   .sim-intro {
@@ -299,8 +314,8 @@
     display: grid;
     grid-template-columns: 280px 380px 1fr;
     gap: 16px;
-    height: calc(100vh - 260px);
-    min-height: 620px;
+    height: 640px;
+    min-height: 560px;
   }
   .sim-panel {
     background: white;
@@ -466,7 +481,7 @@
   .fit-box .num { font-size: 32px; font-weight: 700; color: var(--teal); letter-spacing: -1px; line-height: 1; }
   .fit-box .range { font-size: 11px; color: var(--grey); margin-top: 8px; }
   .fit-box .bar-track { height: 8px; background: rgba(255,255,255,0.6); border-radius: 4px; overflow: hidden; position: relative; }
-  .fit-box .bar-fill { height: 100%; background: var(--teal); border-radius: 4px; }
+  .fit-box .bar-fill { height: 100%; background: var(--teal); border-radius: 4px; position: relative; z-index: 1; }
   .fit-box .bar-range {
     position: absolute; top: 0; bottom: 0;
     background: rgba(42,157,143,0.25); border-radius: 4px;
@@ -488,7 +503,7 @@
   }
   .evidence-item .check.missing { background: var(--red-bg); color: var(--red); }
   .evidence-item .src { font-weight: 600; color: var(--navy); }
-  .evidence-item .val { color: var(--grey); margin-left: auto; font-size: 11px; }
+  .evidence-item .val { color: var(--grey); margin-left: auto; font-size: 11px; text-align: right; }
 
   .decision-box {
     padding: 14px 16px; border-radius: 10px;
@@ -536,11 +551,16 @@
   .board-item .t { font-weight: 600; color: var(--navy); font-size: 13px; }
   .board-item .d { font-size: 11px; color: var(--grey); margin-top: 2px; }
 
+  /* ---------- HR Console extras ---------- */
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--grey); }
+  .hr-section-gap { margin-top: 20px; }
+  .severity-cell .badge { white-space: nowrap; }
+
   @media (max-width: 1100px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .two-col { grid-template-columns: 1fr; }
     .sim-grid { grid-template-columns: 1fr; height: auto; }
-    .sim-panel { height: 400px; }
+    .sim-panel { height: 420px; }
     .board-grid { grid-template-columns: 1fr; }
   }
 </style>
@@ -559,6 +579,7 @@
     <button class="nav-item active" data-nav="overview">Overview</button>
     <button class="nav-item" data-nav="exposure">Exposure Map</button>
     <button class="nav-item" data-nav="redeployment">Redeployment Path</button>
+    <button class="nav-item" data-nav="hr">HR Console</button>
     <button class="nav-item" data-nav="board">Board Pack</button>
   </nav>
   <div class="pills">
@@ -656,7 +677,7 @@
           <div class="pct">45%</div>
         </div>
         <div class="exposure-row">
-          <div class="name">Engineering & Maintenance</div>
+          <div class="name">Engineering &amp; Maintenance</div>
           <div class="track"><div class="fill" style="width: 35%; background: var(--teal);"></div></div>
           <div class="pct">35%</div>
         </div>
@@ -684,18 +705,18 @@
               <div class="a-sub">15 families · confidence-banded</div>
             </div>
           </button>
-          <button class="action-item" onclick="navigate('board')">
+          <button class="action-item" onclick="navigate('hr')">
             <div class="icon teal">✓</div>
             <div>
               <div class="a-title">Prepare the Board pack</div>
               <div class="a-sub">Pilot results · union status · economics</div>
             </div>
           </button>
-          <button class="action-item">
+          <button class="action-item" onclick="navigate('hr')">
             <div class="icon red">▲</div>
             <div>
               <div class="a-title">Review open risks</div>
-              <div class="a-sub">7 tracked · 2 high priority</div>
+              <div class="a-sub">7 tracked · 2 high priority · in HR Console</div>
             </div>
           </button>
         </div>
@@ -744,6 +765,20 @@
         <p>4,200 roles going away. But redeployment is not a slogan — every person has traceable evidence and a decision limit.</p>
       </div>
       <button class="btn outline small" onclick="resetSim()">Reset</button>
+    </div>
+
+    <!-- Sankey flow map -->
+    <div class="sankey-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-eyebrow">Flow map · 6,000 people at risk → 5 destinations</div>
+          <div class="panel-title">Where Field Metering actually goes</div>
+        </div>
+        <div class="panel-sub">70% automatable · 81% have a path · 0 involuntary separations</div>
+      </div>
+      <div class="sankey-wrap">
+        <svg id="sankey-svg" viewBox="0 0 960 420" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Sankey diagram: 6,000 at-risk Field Metering people flowing into five destinations"></svg>
+      </div>
     </div>
 
     <div class="sim-grid">
@@ -805,6 +840,250 @@
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ==================== HR CONSOLE ==================== -->
+  <section class="screen" id="screen-hr">
+    <div class="decision-banner">
+      <div>
+        <div class="label">HR Manager · Operational Console</div>
+        <h2>Cohorts, training, and the risk register</h2>
+        <div class="sub">Move 4,200 people without a single involuntary separation — every action has an owner and a status</div>
+      </div>
+      <div class="decision-actions">
+        <button class="btn primary">Export cohort roster</button>
+        <button class="btn ghost">Schedule bridge training</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">In active pipeline</div>
+        <div class="kpi-value">100</div>
+        <div class="kpi-context">Pilot cohort · measured</div>
+        <div class="kpi-badges">
+          <span class="badge measured"><span class="sym">●</span> Measured</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Bridge training</div>
+        <div class="kpi-value">600</div>
+        <div class="kpi-context">3–6 months · 4 tracks</div>
+        <div class="kpi-badges">
+          <span class="badge inferred"><span class="sym">~</span> Inferred</span>
+          <span class="badge med"><span class="dot"></span> Medium</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Managed transitions</div>
+        <div class="kpi-value">300</div>
+        <div class="kpi-context">Attrition · retirement · outplacement</div>
+        <div class="kpi-badges">
+          <span class="badge med"><span class="dot"></span> Planned</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Union status</div>
+        <div class="kpi-value small">Framework draft</div>
+        <div class="kpi-context">Day 90 target · no objections raised</div>
+        <div class="kpi-badges">
+          <span class="badge high"><span class="dot"></span> On track</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow">Training pipeline</div>
+            <div class="panel-title">Cohorts in motion</div>
+          </div>
+          <button class="btn outline small">View all →</button>
+        </div>
+        <table class="exposure">
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th>Target band</th>
+              <th>Size</th>
+              <th>Progress</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="family-name">Grid Ops · Wave 1</td>
+              <td>B1–B2</td>
+              <td>400</td>
+              <td>
+                <div class="exposure-meter">
+                  <div class="track"><div class="fill" style="width: 75%; background: var(--teal);"></div></div>
+                  <span class="pct">75%</span>
+                </div>
+              </td>
+              <td><span class="badge high"><span class="dot"></span> Active</span></td>
+            </tr>
+            <tr>
+              <td class="family-name">IT / OT · Wave 1</td>
+              <td>B2–B3</td>
+              <td>300</td>
+              <td>
+                <div class="exposure-meter">
+                  <div class="track"><div class="fill" style="width: 40%; background: var(--amber);"></div></div>
+                  <span class="pct">40%</span>
+                </div>
+              </td>
+              <td><span class="badge med"><span class="dot"></span> Bridge needed</span></td>
+            </tr>
+            <tr>
+              <td class="family-name">Customer Service · Wave 1</td>
+              <td>B1–B2</td>
+              <td>200</td>
+              <td>
+                <div class="exposure-meter">
+                  <div class="track"><div class="fill" style="width: 60%; background: var(--teal);"></div></div>
+                  <span class="pct">60%</span>
+                </div>
+              </td>
+              <td><span class="badge high"><span class="dot"></span> Active</span></td>
+            </tr>
+            <tr>
+              <td class="family-name">Supervisor · Wave 1</td>
+              <td>B4</td>
+              <td>100</td>
+              <td>
+                <div class="exposure-meter">
+                  <div class="track"><div class="fill" style="width: 85%; background: var(--teal);"></div></div>
+                  <span class="pct">85%</span>
+                </div>
+              </td>
+              <td><span class="badge high"><span class="dot"></span> Nearing completion</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-eyebrow">Bulk actions</div>
+            <div class="panel-title">Cohort-level moves</div>
+          </div>
+        </div>
+        <div class="action-list">
+          <button class="action-item">
+            <div class="icon amber">⇪</div>
+            <div>
+              <div class="a-title">Export cohort roster</div>
+              <div class="a-sub">CSV · includes fit scores + evidence flags</div>
+            </div>
+          </button>
+          <button class="action-item">
+            <div class="icon teal">✓</div>
+            <div>
+              <div class="a-title">Schedule bridge training</div>
+              <div class="a-sub">3–6 month tracks · 4 vendors shortlisted</div>
+            </div>
+          </button>
+          <button class="action-item">
+            <div class="icon navy">◉</div>
+            <div>
+              <div class="a-title">Draft union briefing</div>
+              <div class="a-sub">Day 90 framework · auto-filled from evidence</div>
+            </div>
+          </button>
+          <button class="action-item">
+            <div class="icon red">▲</div>
+            <div>
+              <div class="a-title">Flag for human review</div>
+              <div class="a-sub">Low-confidence cases only · 47 people</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk register -->
+    <div class="panel" id="risk-register">
+      <div class="panel-header">
+        <div>
+          <div class="panel-eyebrow">Risk register · 7 tracked</div>
+          <div class="panel-title">Open risks</div>
+        </div>
+        <div class="panel-sub">2 high priority · owner assigned to each</div>
+      </div>
+      <table class="exposure">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Risk</th>
+            <th>Category</th>
+            <th>Severity</th>
+            <th>Owner</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">R-01</td>
+            <td class="family-name">Payroll Oracle blocked by Ministry policy</td>
+            <td>Data access</td>
+            <td class="severity-cell"><span class="badge low"><span class="dot"></span> High</span></td>
+            <td>Director</td>
+            <td>Open</td>
+          </tr>
+          <tr>
+            <td class="mono">R-02</td>
+            <td class="family-name">Union framework agreement not yet signed</td>
+            <td>Labor relations</td>
+            <td class="severity-cell"><span class="badge low"><span class="dot"></span> High</span></td>
+            <td>HR Lead</td>
+            <td>In progress</td>
+          </tr>
+          <tr>
+            <td class="mono">R-03</td>
+            <td class="family-name">12 job families lack measured capability data</td>
+            <td>Data quality</td>
+            <td class="severity-cell"><span class="badge med"><span class="dot"></span> Medium</span></td>
+            <td>Analytics</td>
+            <td>Open</td>
+          </tr>
+          <tr>
+            <td class="mono">R-04</td>
+            <td class="family-name">Bridge training capacity for 600 people</td>
+            <td>Capability</td>
+            <td class="severity-cell"><span class="badge med"><span class="dot"></span> Medium</span></td>
+            <td>L&amp;D</td>
+            <td>Planned</td>
+          </tr>
+          <tr>
+            <td class="mono">R-05</td>
+            <td class="family-name">Manager capability for redeployment conversations</td>
+            <td>Change mgmt</td>
+            <td class="severity-cell"><span class="badge med"><span class="dot"></span> Medium</span></td>
+            <td>HRBP</td>
+            <td>Open</td>
+          </tr>
+          <tr>
+            <td class="mono">R-06</td>
+            <td class="family-name">Field rotation logistics across 6 regions</td>
+            <td>Operations</td>
+            <td class="severity-cell"><span class="badge high"><span class="dot"></span> Low</span></td>
+            <td>Ops</td>
+            <td>Open</td>
+          </tr>
+          <tr>
+            <td class="mono">R-07</td>
+            <td class="family-name">Attrition assumption needs validation</td>
+            <td>Planning</td>
+            <td class="severity-cell"><span class="badge high"><span class="dot"></span> Low</span></td>
+            <td>Finance</td>
+            <td>Closed</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -1029,7 +1308,7 @@ const EMPLOYEES = {
     { id:'EMP-48533', name:'Nur Aisyah',      curBand:'B3', curTitle:'Senior Metering Specialist', region:'Region 5', fit:82, confidence:'high',
       evidence:{workSample:true, workSampleNote:'Q3 2025 crew mentoring', cert:'SKKNI L4 · Metering', manager:'3.6 / 4.0 · post-2023', peer:'4.0 / 5.0 · 8 reviews'},
       decision:'REVERSIBLE — pilot assignment. 90-day validation before permanent reassignment.' },
-    { id:'EMP-48601', name:'Agus Salim',      curBand:'B3', curTitle:'Senior Metering Specialist', region:'Region 4', fit:78, confidence:'med',
+    { id:'EMP-48601b', name:'Agus Salim',     curBand:'B3', curTitle:'Senior Metering Specialist', region:'Region 4', fit:78, confidence:'med',
       evidence:{workSample:true, workSampleNote:'Q2 2025 process improvement', cert:'SKKNI Level 3 · Metering', manager:'3.4 / 4.0 · post-2023', peer:'3.8 / 5.0 · 5 reviews'},
       decision:'REVERSIBLE — pilot with bridge. 90-day validation before permanent reassignment.' },
     { id:'EMP-48677', name:'Ratna Sari',      curBand:'B4', curTitle:'Metering Supervisor',      region:'Region 6', fit:76, confidence:'med',
@@ -1045,7 +1324,7 @@ const JOB_FAMILIES = [
   { name:'HR',                          pop:2000,  pct:55, driver:'Screening, admin automation',           conf:'med'  },
   { name:'Grid Operations',             pop:8000,  pct:45, driver:'SCADA, predictive maintenance',        conf:'high' },
   { name:'Engineering & Maintenance',   pop:7000,  pct:35, driver:'Predictive maintenance, digital twin',  conf:'med'  },
-  { name:'Field Operations (non-meter) ', pop:9000, pct:25, driver:'Physical, safety-critical',            conf:'med'  },
+  { name:'Field Operations (non-meter)',pop:9000,  pct:25, driver:'Physical, safety-critical',            conf:'med'  },
   { name:'Logistics',                   pop:2000,  pct:30, driver:'Route automation',                      conf:'med'  },
   { name:'Procurement',                 pop:1500,  pct:35, driver:'Contract automation',                   conf:'med'  },
   { name:'Asset Management',            pop:2500,  pct:30, driver:'Data consolidation',                    conf:'med'  },
@@ -1075,7 +1354,7 @@ function navigate(screen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + screen).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const nav = document.querySelector(`[data-nav="${screen}"]`);
+  const nav = document.querySelector('[data-nav="' + screen + '"]');
   if (nav) nav.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1083,6 +1362,88 @@ function navigate(screen) {
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => navigate(item.dataset.nav));
 });
+
+/* =====================================================
+   SANKEY DIAGRAM
+   Flows: 6,000 Field Metering people → 5 destinations
+   ===================================================== */
+function renderSankey() {
+  const svg = document.getElementById('sankey-svg');
+  if (!svg) return;
+
+  const W = 960, H = 420;
+  const total = 6000;
+  const gap = 10;
+  const innerTop = 40;
+  const innerH = H - 80;                       // 340
+  const availH = innerH - gap * 5;             // 290
+  const scale = availH / total;
+
+  const flows = [
+    { id:'stay',    label:'Enhanced metering',   sub:'stay in role',         value:1800, color:'#9CA3AF' },
+    { id:'grid',    label:'Grid Operations',     sub:'B1–B2',                value:1700, color:'#2A9D8F' },
+    { id:'itot',    label:'IT / OT Support',     sub:'B2–B3',                value:1100, color:'#E8A33D' },
+    { id:'cs',      label:'Customer Service',    sub:'B1–B2',                value:800,  color:'#5B8DB8' },
+    { id:'sup',     label:'Metering Supervisor', sub:'B4',                   value:300,  color:'#0F2A47' },
+    { id:'managed', label:'Managed transition',  sub:'attrition/retirement', value:300,  color:'#D95D39' },
+  ];
+
+  // Destination layout (right column)
+  let destY = innerTop;
+  const destPositions = flows.map(f => {
+    const h = f.value * scale;
+    const pos = { ...f, y: destY, h };
+    destY += h + gap;
+    return pos;
+  });
+
+  // Source node layout (left column) — centered on destination span
+  const sourceH = total * scale;                     // 290
+  const sourceY = innerTop + (innerH - sourceH) / 2; // 65
+  const sourceX = 140, sourceW = 24;
+  const destX = 760, destW = 24;
+  const midX = (sourceX + sourceW + destX) / 2;      // 462
+
+  // Build links
+  let sourceOffset = sourceY;
+  const links = destPositions.map(d => {
+    const sy = sourceOffset;
+    const dy = d.y;
+    const h = d.h;
+    const sx = sourceX + sourceW;
+    const dx = destX;
+    const path = 'M ' + sx + ',' + sy +
+                 ' C ' + midX + ',' + sy + ' ' + midX + ',' + dy + ' ' + dx + ',' + dy +
+                 ' L ' + dx + ',' + (dy + h) +
+                 ' C ' + midX + ',' + (dy + h) + ' ' + midX + ',' + (sy + h) + ' ' + sx + ',' + (sy + h) + ' Z';
+    sourceOffset += h;
+    return '<path d="' + path + '" fill="' + d.color + '" fill-opacity="0.32" stroke="' + d.color + '" stroke-opacity="0.55" stroke-width="1" />';
+  });
+
+  // Source node + label
+  const sourceNode =
+    '<rect x="' + sourceX + '" y="' + sourceY + '" width="' + sourceW + '" height="' + sourceH + '" fill="#0F2A47" rx="4" />' +
+    '<text x="' + (sourceX - 14) + '" y="' + (sourceY + sourceH / 2 - 8) + '" text-anchor="end" font-size="14" font-weight="700" fill="#0F2A47">Field Metering</text>' +
+    '<text x="' + (sourceX - 14) + '" y="' + (sourceY + sourceH / 2 + 10) + '" text-anchor="end" font-size="11" fill="#6B7280">6,000 people at risk</text>' +
+    '<text x="' + (sourceX - 14) + '" y="' + (sourceY + sourceH / 2 + 26) + '" text-anchor="end" font-size="10" fill="#9CA3AF" font-style="italic">task decomposition v1.2</text>';
+
+  // Destination nodes + labels
+  const destNodes = destPositions.map(d => {
+    const isSmall = d.h < 26;
+    const labelY = d.y + d.h / 2 + (isSmall ? 4 : -6);
+    const subY   = d.y + d.h / 2 + (isSmall ? 0 : 11);
+    return '' +
+      '<rect x="' + destX + '" y="' + d.y + '" width="' + destW + '" height="' + d.h + '" fill="' + d.color + '" rx="4" />' +
+      '<text x="' + (destX + destW + 14) + '" y="' + labelY + '" font-size="' + (isSmall ? 11.5 : 13) + '" font-weight="700" fill="#1F2937">' + d.label + '</text>' +
+      (isSmall
+        ? '<text x="' + (destX + destW + 14) + '" y="' + (labelY + 13) + '" font-size="10.5" fill="#6B7280">' + d.value.toLocaleString() + ' people</text>'
+        : '<text x="' + (destX + destW + 14) + '" y="' + (subY + 12) + '" font-size="11" fill="#6B7280">' + d.value.toLocaleString() + ' people · ' + d.sub + '</text>');
+  }).join('');
+
+  svg.innerHTML =
+    '<g class="sankey-links">' + links.join('') + '</g>' +
+    '<g class="sankey-nodes">' + sourceNode + destNodes + '</g>';
+}
 
 /* =====================================================
    REDEPLOYMENT SIMULATOR
@@ -1094,21 +1455,20 @@ function renderBands() {
     const widthPct = (b.count / maxCount) * 100;
     const selected = state.selectedBand === b.id ? 'selected' : '';
     const touched = state.selectedBand !== null ? 'touched' : '';
-    return `
-      <div class="band-card ${selected} ${touched}" onclick="selectBand('${b.id}')">
-        ${state.selectedBand === null ? '<span class="hint">Click →</span>' : ''}
-        <div class="band-row">
-          <div>
-            <div class="band-name">${b.name}</div>
-            <div class="band-band">${b.bandRange} · ${b.desc}</div>
-          </div>
-          <div class="band-count">${b.count.toLocaleString()}</div>
-        </div>
-        <div class="band-bar">
-          <div class="band-bar-fill" style="width: ${widthPct}%; background: ${b.color};"></div>
-        </div>
-      </div>
-    `;
+    return '' +
+      '<div class="band-card ' + selected + ' ' + touched + '" onclick="selectBand(\'' + b.id + '\')">' +
+        (state.selectedBand === null ? '<span class="hint">Click →</span>' : '') +
+        '<div class="band-row">' +
+          '<div>' +
+            '<div class="band-name">' + b.name + '</div>' +
+            '<div class="band-band">' + b.bandRange + ' · ' + b.desc + '</div>' +
+          '</div>' +
+          '<div class="band-count">' + b.count.toLocaleString() + '</div>' +
+        '</div>' +
+        '<div class="band-bar">' +
+          '<div class="band-bar-fill" style="width: ' + widthPct + '%; background: ' + b.color + ';"></div>' +
+        '</div>' +
+      '</div>';
   }).join('');
 }
 
@@ -1130,144 +1490,138 @@ function renderEvidence() {
 
   if (!state.selectedBand) {
     title.textContent = 'What rests on this';
-    panel.innerHTML = `
-      <div class="evidence-empty">
-        <div class="icon">◉</div>
-        <div class="headline">Select a band to see who's in it</div>
-        <div class="sub">Click any adjacent band on the left. Then click a person to see their evidence and the decision you may take.</div>
-      </div>
-    `;
+    panel.innerHTML =
+      '<div class="evidence-empty">' +
+        '<div class="icon">◉</div>' +
+        '<div class="headline">Select a band to see who\'s in it</div>' +
+        '<div class="sub">Click any adjacent band on the left. Then click a person to see their evidence and the decision you may take.</div>' +
+      '</div>';
     return;
   }
 
   const band = BANDS.find(b => b.id === state.selectedBand);
   const employees = EMPLOYEES[state.selectedBand];
 
+  // ---------- List view ----------
   if (!state.selectedEmployee) {
-    title.textContent = `${band.name} · ${band.count.toLocaleString()} people`;
-    panel.innerHTML = `
-      <div class="emp-list">
-        ${employees.map(e => {
-          const confClass = e.confidence;
-          return `
-            <div class="emp-item" onclick="selectEmployee('${e.id}')">
-              <div class="emp-avatar">${initials(e.name)}</div>
-              <div class="emp-main">
-                <div class="emp-name">${e.name}</div>
-                <div class="emp-meta">${e.curTitle} · ${e.curBand} · ${e.region}</div>
-                <div style="margin-top: 6px;">
-                  <span class="badge ${confClass}"><span class="dot"></span>${e.confidence === 'high' ? 'High' : e.confidence === 'med' ? 'Medium' : 'Low'} confidence</span>
-                </div>
-              </div>
-              <div class="emp-fit">
-                <div class="fit-num">${e.fit}%</div>
-                <div class="fit-label">fit</div>
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-      <div class="sample-note">
-        Sample of 6 out of ${band.count.toLocaleString()} · click any person to see evidence
-      </div>
-    `;
+    title.textContent = band.name + ' · ' + band.count.toLocaleString() + ' people';
+    panel.innerHTML =
+      '<div class="emp-list">' +
+        employees.map(e =>
+          '<div class="emp-item" onclick="selectEmployee(\'' + e.id + '\')">' +
+            '<div class="emp-avatar">' + initials(e.name) + '</div>' +
+            '<div class="emp-main">' +
+              '<div class="emp-name">' + e.name + '</div>' +
+              '<div class="emp-meta">' + e.curTitle + ' · ' + e.curBand + ' · ' + e.region + '</div>' +
+            '</div>' +
+            '<div class="emp-fit">' +
+              '<div class="fit-num">' + e.fit + '%</div>' +
+              '<div class="fit-label">fit</div>' +
+            '</div>' +
+          '</div>'
+        ).join('') +
+      '</div>' +
+      '<div class="sample-note">Showing ' + employees.length + ' sample profiles · full roster of ' + band.count.toLocaleString() + ' people in HR Console.</div>';
     return;
   }
 
+  // ---------- Detail view ----------
   const emp = employees.find(e => e.id === state.selectedEmployee);
-  if (!emp) return;
+  if (!emp) { state.selectedEmployee = null; return renderEvidence(); }
 
-  const targetBand = BANDS.find(b => b.id === state.selectedBand);
-  const fitRangeLow = Math.max(0, emp.fit - 9);
-  const fitRangeHigh = Math.min(100, emp.fit + 5);
-  const confLabel = emp.confidence === 'high' ? 'High' : emp.confidence === 'med' ? 'Medium' : 'Low';
-  const confColor = emp.confidence === 'high' ? 'var(--teal)' : emp.confidence === 'med' ? 'var(--amber-txt)' : 'var(--red)';
-  const confBg = emp.confidence === 'high' ? 'var(--teal-bg)' : emp.confidence === 'med' ? 'var(--amber-bg)' : 'var(--red-bg)';
+  title.textContent = emp.name;
+  const ev = emp.evidence;
+  const fitLow  = Math.max(0,   emp.fit - 6);
+  const fitHigh = Math.min(100, emp.fit + 6);
+  const confLabel = emp.confidence === 'high' ? 'High'
+                  : emp.confidence === 'med'  ? 'Medium'
+                  : 'Low';
+  const confClass = emp.confidence === 'high' ? 'measured'
+                  : emp.confidence === 'med'  ? 'inferred'
+                  : 'low';
 
-  title.textContent = 'Evidence';
+  panel.innerHTML =
+    '<div class="evidence-detail">' +
+      '<button class="evidence-back" onclick="backToList()">← All people in ' + band.name + '</button>' +
 
-  panel.innerHTML = `
-    <div class="evidence-detail">
-      <button class="evidence-back" onclick="backToBand()">← Back to ${band.name}</button>
+      '<div class="evidence-header">' +
+        '<div class="emp-avatar">' + initials(emp.name) + '</div>' +
+        '<div>' +
+          '<h3>' + emp.name + '</h3>' +
+          '<div class="meta">' + emp.id + ' · ' + emp.curTitle + ' · ' + emp.region + '</div>' +
+        '</div>' +
+      '</div>' +
 
-      <div class="evidence-header">
-        <div class="emp-avatar">${initials(emp.name)}</div>
-        <div>
-          <h3>${emp.name}</h3>
-          <div class="meta">${emp.id} · ${emp.region}</div>
-        </div>
-      </div>
+      '<div class="evidence-section-title">Proposed path</div>' +
+      '<div class="evidence-path">' +
+        '<div class="from">' +
+          '<div class="label">From</div>' +
+          '<div class="role">' + emp.curTitle + '</div>' +
+          '<div class="band">' + emp.curBand + '</div>' +
+        '</div>' +
+        '<div class="arrow">→</div>' +
+        '<div class="to">' +
+          '<div class="label">To</div>' +
+          '<div class="role">' + band.name + '</div>' +
+          '<div class="band">' + band.bandRange + '</div>' +
+        '</div>' +
+      '</div>' +
 
-      <div class="evidence-section-title">Path</div>
-      <div class="evidence-path">
-        <div class="from">
-          <div class="label">Current</div>
-          <div class="role">${emp.curTitle}</div>
-          <div class="band">${emp.curBand}</div>
-        </div>
-        <div class="arrow">→</div>
-        <div class="to">
-          <div class="label">Target</div>
-          <div class="role">${targetBand.name}</div>
-          <div class="band">${targetBand.bandRange}</div>
-        </div>
-      </div>
+      '<div class="evidence-section-title">Fit for target band</div>' +
+      '<div class="fit-box">' +
+        '<div class="header">' +
+          '<div class="num">' + emp.fit + '%</div>' +
+          '<span class="badge ' + confClass + '"><span class="dot"></span> ' + confLabel + ' confidence</span>' +
+        '</div>' +
+        '<div class="bar-track">' +
+          '<div class="bar-range" style="left: ' + fitLow + '%; width: ' + (fitHigh - fitLow) + '%;"></div>' +
+          '<div class="bar-fill" style="width: ' + emp.fit + '%;"></div>' +
+        '</div>' +
+        '<div class="range">Estimate range ' + fitLow + '%–' + fitHigh + '% · task decomposition v1.2</div>' +
+      '</div>' +
 
-      <div class="evidence-section-title">Fit score</div>
-      <div class="fit-box">
-        <div class="header">
-          <div class="num">${emp.fit}%</div>
-          <span class="badge ${emp.confidence}" style="background: ${confBg}; color: ${confColor};">
-            <span class="dot"></span> ${confLabel}
-          </span>
-        </div>
-        <div class="bar-track">
-          <div class="bar-range" style="left: ${fitRangeLow}%; width: ${fitRangeHigh - fitRangeLow}%;"></div>
-          <div class="bar-fill" style="width: ${emp.fit}%;"></div>
-        </div>
-        <div class="range">Confidence range: ${fitRangeLow}–${fitRangeHigh}% · model v1.2 (inferred)</div>
-      </div>
+      '<div class="evidence-section-title">Evidence trail</div>' +
+      '<div class="evidence-list">' +
+        '<div class="evidence-item">' +
+          '<div class="check ' + (ev.workSample ? '' : 'missing') + '">' + (ev.workSample ? '✓' : '✕') + '</div>' +
+          '<span class="src">Work sample</span>' +
+          '<span class="val">' + ev.workSampleNote + '</span>' +
+        '</div>' +
+        '<div class="evidence-item">' +
+          '<div class="check">✓</div>' +
+          '<span class="src">Certification</span>' +
+          '<span class="val">' + ev.cert + '</span>' +
+        '</div>' +
+        '<div class="evidence-item">' +
+          '<div class="check">✓</div>' +
+          '<span class="src">Manager rating</span>' +
+          '<span class="val">' + ev.manager + '</span>' +
+        '</div>' +
+        '<div class="evidence-item">' +
+          '<div class="check">✓</div>' +
+          '<span class="src">Peer reviews</span>' +
+          '<span class="val">' + ev.peer + '</span>' +
+        '</div>' +
+      '</div>' +
 
-      <div class="evidence-section-title">Evidence</div>
-      <div class="evidence-list">
-        <div class="evidence-item">
-          <div class="check ${emp.evidence.workSample ? '' : 'missing'}">${emp.evidence.workSample ? '✓' : '×'}</div>
-          <span class="src">Work sample</span>
-          <span class="val">${emp.evidence.workSampleNote}</span>
-        </div>
-        <div class="evidence-item">
-          <div class="check">✓</div>
-          <span class="src">Certification</span>
-          <span class="val">${emp.evidence.cert}</span>
-        </div>
-        <div class="evidence-item">
-          <div class="check">✓</div>
-          <span class="src">Manager</span>
-          <span class="val">${emp.evidence.manager}</span>
-        </div>
-        <div class="evidence-item">
-          <div class="check">✓</div>
-          <span class="src">Peer review</span>
-          <span class="val">${emp.evidence.peer}</span>
-        </div>
-      </div>
+      '<div class="evidence-section-title">Decision you may take</div>' +
+      '<div class="decision-box">' +
+        '<div class="label">Decision limit</div>' +
+        '<div class="content">' + emp.decision + '</div>' +
+      '</div>' +
 
-      <div class="evidence-section-title">What you may decide</div>
-      <div class="decision-box">
-        <div class="label">Decision limit at this confidence</div>
-        <div class="content">${emp.decision}</div>
-      </div>
-
-      <div class="sample-note">
-        Every field above traces to a source. Missing evidence is shown as × not hidden.
-      </div>
-    </div>
-  `;
+      '<div class="sample-note">Sample profile of ' + band.count.toLocaleString() + ' people in this band. Every individual reassignment requires human sign-off — no automated moves.</div>' +
+    '</div>';
 }
 
-function backToBand() {
+function backToList() {
   state.selectedEmployee = null;
   renderEvidence();
+}
+
+function initials(name) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2)
+    .map(w => w[0]).join('').toUpperCase();
 }
 
 function resetSim() {
@@ -1277,55 +1631,75 @@ function resetSim() {
   renderEvidence();
 }
 
-function initials(name) {
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-}
-
 /* =====================================================
-   EXPOSURE MAP
+   EXPOSURE TABLE
    ===================================================== */
 function renderExposure() {
   const tbody = document.getElementById('exposure-tbody');
+  if (!tbody) return;
+
+  const search = state.filterSearch;
+  const band   = state.filterConfidence;
+
   const filtered = JOB_FAMILIES.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(state.filterSearch.toLowerCase());
-    const matchesFilter =
-      state.filterConfidence === 'all' ||
-      (state.filterConfidence === 'high' && f.pct >= 55) ||
-      (state.filterConfidence === 'medium' && f.pct >= 30 && f.pct < 55) ||
-      (state.filterConfidence === 'low' && f.pct < 30);
-    return matchesSearch && matchesFilter;
+    if (search && !f.name.toLowerCase().includes(search)) return false;
+    if (band === 'high'   && f.pct < 60)                  return false;
+    if (band === 'medium' && (f.pct < 30 || f.pct >= 60)) return false;
+    if (band === 'low'    && f.pct >= 30)                 return false;
+    return true;
   });
 
+  if (filtered.length === 0) {
+    tbody.innerHTML =
+      '<tr><td colspan="5" style="text-align:center; color: var(--grey); padding: 32px;">No job families match this filter.</td></tr>';
+    return;
+  }
+
   tbody.innerHTML = filtered.map(f => {
-    const exposureColor = f.pct >= 55 ? 'var(--red)' : f.pct >= 30 ? 'var(--amber)' : 'var(--teal)';
-    const confLabel = f.conf === 'high' ? 'High' : f.conf === 'med' ? 'Medium' : 'Low';
-    return `
-      <tr onclick="alert('Drill-down for ${f.name} not in demo. Full analysis in live session.')">
-        <td class="family-name">${f.name}</td>
-        <td class="pop">${f.pop.toLocaleString()}</td>
-        <td>
-          <div class="exposure-meter">
-            <div class="track"><div class="fill" style="width: ${f.pct}%; background: ${exposureColor};"></div></div>
-            <span class="pct">${f.pct}%</span>
-          </div>
-        </td>
-        <td style="color: var(--grey); font-size: 12px;">${f.driver}</td>
-        <td><span class="badge ${f.conf}"><span class="dot"></span>${confLabel}</span></td>
-      </tr>
-    `;
+    const barColor = f.pct >= 60 ? 'var(--red)'
+                   : f.pct >= 30 ? 'var(--amber)'
+                   : 'var(--teal)';
+    const confClass = f.conf === 'high' ? 'measured'
+                    : f.conf === 'med'  ? 'inferred'
+                    : 'low';
+    const confLabel = f.conf === 'high' ? 'High'
+                    : f.conf === 'med'  ? 'Medium'
+                    : 'Low';
+    const clickable = f.name.trim() === 'Field Metering';
+    const rowAttr = clickable ? 'onclick="navigate(\'redeployment\')"' : '';
+    const pathTag = clickable
+      ? ' <span style="font-size:10px;color:var(--amber-txt);font-weight:700;">→ path</span>'
+      : '';
+
+    return '' +
+      '<tr ' + rowAttr + '>' +
+        '<td class="family-name">' + f.name + pathTag + '</td>' +
+        '<td class="pop">' + f.pop.toLocaleString() + '</td>' +
+        '<td>' +
+          '<div class="exposure-meter">' +
+            '<div class="track"><div class="fill" style="width: ' + f.pct + '%; background: ' + barColor + ';"></div></div>' +
+            '<span class="pct">' + f.pct + '%</span>' +
+          '</div>' +
+        '</td>' +
+        '<td>' + f.driver + '</td>' +
+        '<td><span class="badge ' + confClass + '"><span class="dot"></span> ' + confLabel + '</span></td>' +
+      '</tr>';
   }).join('');
 }
 
 function filterExposure(value) {
-  state.filterSearch = value;
+  state.filterSearch = (value || '').trim().toLowerCase();
   renderExposure();
 }
 
+/* =====================================================
+   FILTER PILLS
+   ===================================================== */
 document.querySelectorAll('.filter-pill').forEach(pill => {
   pill.addEventListener('click', () => {
     document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
     pill.classList.add('active');
-    state.filterConfidence = pill.dataset.filter;
+    state.filterConfidence = pill.dataset.filter || 'all';
     renderExposure();
   });
 });
@@ -1333,10 +1707,9 @@ document.querySelectorAll('.filter-pill').forEach(pill => {
 /* =====================================================
    INIT
    ===================================================== */
+renderSankey();
 renderBands();
-renderEvidence();
 renderExposure();
 </script>
-
 </body>
 </html>
