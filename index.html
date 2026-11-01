@@ -1335,10 +1335,10 @@ const EMPLOYEES = {
       decision:'REVERSIBLE — pilot assignment. Validate with 90-day work sample before permanent band reassignment.' },
     { id:'EMP-48455', name:'Joko Susilo',     curBand:'B2', curTitle:'Metering Technician',      region:'Region 3', fit:76, confidence:'med',
       evidence:{workSample:true, workSampleNote:'Q2 2025 meter data audit', cert:'SKKNI Level 3 · Metering', manager:'3.4 / 4.0 · post-2023', peer:'3.8 / 5.0 · 6 reviews'},
-      decision:'REVERSIBLE — pilot with bridge module. Validate with 90-day work sample before permanent reassignment.' },
+      decision:'REVERSIBLE — pilot with bridge module. Validate with 90-day work sample before permanent band reassignment.' },
     { id:'EMP-48522', name:'Sri Wahyuni',     curBand:'B2', curTitle:'Metering Technician',      region:'Region 1', fit:73, confidence:'med',
       evidence:{workSample:true, workSampleNote:'Q3 2025 data quality fix', cert:'SKKNI Level 3 · Metering', manager:'3.3 / 4.0 · post-2023', peer:'3.9 / 5.0 · 4 reviews'},
-      decision:'REVERSIBLE — pilot with bridge module. Validate with 90-day work sample before permanent reassignment.' },
+      decision:'REVERSIBLE — pilot with bridge module. Validate with 90-day work sample before permanent band reassignment.' },
     { id:'EMP-48601', name:'Bagus Prakoso',   curBand:'B3', curTitle:'Senior Metering Specialist', region:'Region 5', fit:71, confidence:'med',
       evidence:{workSample:false, workSampleNote:'no Q3 sample', cert:'SKKNI Level 3 · Metering', manager:'3.2 / 4.0 · post-2023', peer:'3.7 / 5.0 · 5 reviews'},
       decision:'REVERSIBLE — pilot with bridge. Evidence is thinner. Do not promise irreversibility yet.' },
@@ -1914,4 +1914,72 @@ function renderExposure() {
     return;
   }
 
-  tbody.innerHTML = filtered.map(f
+  tbody.innerHTML = filtered.map(f => {
+    const color = f.pct >= 60 ? 'var(--red)'
+                : f.pct >= 30 ? 'var(--amber)'
+                : 'var(--teal)';
+
+    const confMap = {
+      high: { cls: 'measured', sym: '●', label: 'Measured' },
+      med:  { cls: 'inferred', sym: '~', label: 'Inferred' },
+      low:  { cls: 'low',      sym: '?', label: 'Low conf.' },
+    };
+    const c = confMap[f.conf] || confMap.med;
+
+    return '' +
+      '<tr onclick="navigate(\'redeployment\')">' +
+        '<td class="family-name">' + f.name + '</td>' +
+        '<td class="pop">' + f.pop.toLocaleString() + '</td>' +
+        '<td>' +
+          '<div class="exposure-meter">' +
+            '<div class="track">' +
+              '<div class="fill" style="width: ' + f.pct + '%; background: ' + color + ';"></div>' +
+            '</div>' +
+            '<span class="pct">' + f.pct + '%</span>' +
+          '</div>' +
+        '</td>' +
+        '<td class="pop">' + f.driver + '</td>' +
+        '<td><span class="badge ' + c.cls + '"><span class="sym">' + c.sym + '</span> ' + c.label + '</span></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function filterExposure(value) {
+  state.filterSearch = (value || '').toLowerCase().trim();
+  renderExposure();
+}
+
+/* ---- Filter pill wiring ---- */
+document.querySelectorAll('.filter-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    state.filterConfidence = pill.dataset.filter;
+    renderExposure();
+  });
+});
+
+/* =====================================================
+   BOOT
+   ===================================================== */
+function init() {
+  renderSankey();
+  renderBands();
+  renderEvidence();
+  renderExposure();
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderSankey, 150);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
