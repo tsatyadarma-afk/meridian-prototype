@@ -464,9 +464,7 @@
     padding: 14px; background: var(--cream);
     border-radius: 8px;
   }
-  .evidence-path .from, .evidence-path .to {
-    text-align: center;
-  }
+  .evidence-path .from, .evidence-path .to { text-align: center; }
   .evidence-path .label { font-size: 10px; color: var(--grey); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
   .evidence-path .role { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 3px; }
   .evidence-path .band { font-size: 11px; color: var(--grey); margin-top: 2px; }
@@ -553,8 +551,71 @@
 
   /* ---------- HR Console extras ---------- */
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--grey); }
-  .hr-section-gap { margin-top: 20px; }
   .severity-cell .badge { white-space: nowrap; }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,42,71,0.55);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px; z-index: 200;
+  }
+  .modal-overlay.show { display: flex; animation: fadeIn 0.18s ease-out; }
+  .modal {
+    background: white; border-radius: 14px; max-width: 640px; width: 100%;
+    max-height: 85vh; display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(15,42,71,0.35);
+  }
+  .modal-header {
+    padding: 20px 24px 14px; border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
+  }
+  .modal-eyebrow {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--grey); font-weight: 700; margin-bottom: 4px;
+  }
+  .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--navy); }
+  .modal-close {
+    background: none; border: none; font-size: 15px; color: var(--grey);
+    cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit;
+  }
+  .modal-close:hover { background: var(--cream); color: var(--navy); }
+  .modal-body { padding: 18px 24px; overflow-y: auto; }
+  .modal-actions {
+    padding: 14px 24px 20px; display: flex; gap: 8px;
+    justify-content: flex-end; flex-wrap: wrap;
+    border-top: 1px solid var(--line-2);
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px;
+    transform: translate(-50%, 16px);
+    background: var(--navy); color: white;
+    padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 12px 32px rgba(15,42,71,0.3);
+    opacity: 0; pointer-events: none;
+    transition: all 0.25s ease;
+    z-index: 300;
+    max-width: min(560px, calc(100vw - 32px));
+    text-align: center; line-height: 1.4;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Print ---------- */
+  @media print {
+    header.top, .pills, nav.nav, .decision-actions, .btn,
+    .filter-bar, .toast, .modal-overlay, .sim-intro .btn {
+      display: none !important;
+    }
+    body { background: white; }
+    main { padding: 0; max-width: none; }
+    .screen { display: none !important; }
+    .screen.active { display: block !important; }
+    .decision-banner { border-radius: 0; }
+    .panel, .kpi, .board-card, .board-item { break-inside: avoid; }
+  }
 
   @media (max-width: 1100px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -705,14 +766,14 @@
               <div class="a-sub">15 families · confidence-banded</div>
             </div>
           </button>
-          <button class="action-item" onclick="navigate('hr')">
+          <button class="action-item" onclick="navigate('board')">
             <div class="icon teal">✓</div>
             <div>
               <div class="a-title">Prepare the Board pack</div>
               <div class="a-sub">Pilot results · union status · economics</div>
             </div>
           </button>
-          <button class="action-item" onclick="navigate('hr')">
+          <button class="action-item" onclick="navigate('hr'); setTimeout(function(){ document.getElementById('risk-register').scrollIntoView({behavior:'smooth', block:'start'}); }, 60);">
             <div class="icon red">▲</div>
             <div>
               <div class="a-title">Review open risks</div>
@@ -756,7 +817,7 @@
     </table>
   </section>
 
-  <!-- ==================== REDEPLOYMENT SIMULATOR (AHA) ==================== -->
+  <!-- ==================== REDEPLOYMENT SIMULATOR ==================== -->
   <section class="screen" id="screen-redeployment">
     <div class="sim-intro">
       <div class="icon">◎</div>
@@ -821,9 +882,7 @@
           <div class="eyebrow">Adjacent capability bands</div>
           <div class="title">Where they can go</div>
         </div>
-        <div class="sim-panel-body" id="band-list">
-          <!-- rendered by JS -->
-        </div>
+        <div class="sim-panel-body" id="band-list"></div>
       </div>
 
       <!-- Right: evidence -->
@@ -852,8 +911,8 @@
         <div class="sub">Move 4,200 people without a single involuntary separation — every action has an owner and a status</div>
       </div>
       <div class="decision-actions">
-        <button class="btn primary">Export cohort roster</button>
-        <button class="btn ghost">Schedule bridge training</button>
+        <button class="btn primary" onclick="exportCohortCSV()">Export cohort roster</button>
+        <button class="btn ghost" onclick="openTrainingModal()">Schedule bridge training</button>
       </div>
     </div>
 
@@ -900,7 +959,6 @@
             <div class="panel-eyebrow">Training pipeline</div>
             <div class="panel-title">Cohorts in motion</div>
           </div>
-          <button class="btn outline small">View all →</button>
         </div>
         <table class="exposure">
           <thead>
@@ -973,28 +1031,28 @@
           </div>
         </div>
         <div class="action-list">
-          <button class="action-item">
+          <button class="action-item" onclick="exportCohortCSV()">
             <div class="icon amber">⇪</div>
             <div>
               <div class="a-title">Export cohort roster</div>
               <div class="a-sub">CSV · includes fit scores + evidence flags</div>
             </div>
           </button>
-          <button class="action-item">
+          <button class="action-item" onclick="openTrainingModal()">
             <div class="icon teal">✓</div>
             <div>
               <div class="a-title">Schedule bridge training</div>
               <div class="a-sub">3–6 month tracks · 4 vendors shortlisted</div>
             </div>
           </button>
-          <button class="action-item">
+          <button class="action-item" onclick="openUnionModal()">
             <div class="icon navy">◉</div>
             <div>
               <div class="a-title">Draft union briefing</div>
               <div class="a-sub">Day 90 framework · auto-filled from evidence</div>
             </div>
           </button>
-          <button class="action-item">
+          <button class="action-item" onclick="openReviewModal()">
             <div class="icon red">▲</div>
             <div>
               <div class="a-title">Flag for human review</div>
@@ -1096,7 +1154,7 @@
         <div class="sub">Everything on this screen is demo-able, not aspirational</div>
       </div>
       <div class="decision-actions">
-        <button class="btn primary">Export to PDF</button>
+        <button class="btn primary" onclick="printActiveScreen()">Export to PDF</button>
       </div>
     </div>
 
@@ -1223,14 +1281,30 @@
 
 </main>
 
+<!-- ==================== MODAL + TOAST ==================== -->
+<div class="modal-overlay" id="modal-overlay" onclick="if (event.target === this) closeModal();">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <div>
+        <div class="modal-eyebrow" id="modal-eyebrow"></div>
+        <h3 id="modal-title"></h3>
+      </div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
 /* =====================================================
    DATA
    ===================================================== */
 const BANDS = [
   { id: 'grid', name: 'Grid Operations',     bandRange: 'B1–B2', count: 1800, color: '#2A9D8F', desc: 'Safety, field work, asset awareness' },
-  { id: 'itot', name: 'IT / OT Support',      bandRange: 'B2–B3', count: 1200, color: '#E8A33D', desc: 'IoT diagnostics, data quality' },
-  { id: 'cs',   name: 'Customer Service',     bandRange: 'B1–B2', count: 800,  color: '#5B8DB8', desc: 'Interface, complaint handling' },
+  { id: 'itot', name: 'IT / OT Support',     bandRange: 'B2–B3', count: 1200, color: '#E8A33D', desc: 'IoT diagnostics, data quality' },
+  { id: 'cs',   name: 'Customer Service',    bandRange: 'B1–B2', count: 800,  color: '#5B8DB8', desc: 'Interface, complaint handling' },
   { id: 'sup',  name: 'Metering Ops Supervisor', bandRange: 'B4', count: 400, color: '#0F2A47', desc: 'Internal promotion for seniors' },
 ];
 
@@ -1335,6 +1409,13 @@ const JOB_FAMILIES = [
   { name:'Executive',                   pop:300,   pct:10, driver:'Decision support',                      conf:'high' },
 ];
 
+const TRAINING_TRACKS = [
+  { name:'Grid Ops Safety Bridge',       target:'B1–B2', size:220, duration:'3 months', vendor:'Vendor A' },
+  { name:'IT / OT Diagnostics Bridge',   target:'B2–B3', size:180, duration:'4 months', vendor:'Vendor B' },
+  { name:'Customer Interface Bridge',    target:'B1–B2', size:120, duration:'3 months', vendor:'Vendor C' },
+  { name:'Supervisor Leadership Bridge', target:'B4',    size:80,  duration:'6 months', vendor:'Vendor D' },
+];
+
 /* =====================================================
    STATE
    ===================================================== */
@@ -1364,8 +1445,193 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 
 /* =====================================================
+   TOAST + MODAL
+   ===================================================== */
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3400);
+}
+
+function showModal(opts) {
+  document.getElementById('modal-eyebrow').textContent = opts.eyebrow || '';
+  document.getElementById('modal-title').textContent = opts.title || '';
+  document.getElementById('modal-body').innerHTML = opts.body || '';
+  document.getElementById('modal-actions').innerHTML = opts.actions || '';
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* =====================================================
+   REAL ACTIONS
+   ===================================================== */
+function exportCohortCSV() {
+  const rows = [['ID','Name','Current band','Current title','Region','Target band','Target band range','Fit %','Confidence','Decision']];
+  Object.keys(EMPLOYEES).forEach(bandId => {
+    const band = BANDS.find(b => b.id === bandId);
+    EMPLOYEES[bandId].forEach(e => {
+      rows.push([e.id, e.name, e.curBand, e.curTitle, e.region, band.name, band.bandRange, e.fit, e.confidence, e.decision]);
+    });
+  });
+  const csv = rows.map(r => r.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  downloadBlob(csv, 'text/csv;charset=utf-8;', 'meridian-cohort-roster.csv');
+  toast('Cohort roster exported — CSV includes fit scores and evidence flags.');
+}
+
+function printActiveScreen() {
+  window.print();
+}
+
+function openTrainingModal() {
+  const total = TRAINING_TRACKS.reduce((a, t) => a + t.size, 0);
+  const rows = TRAINING_TRACKS.map(t =>
+    '<tr>' +
+      '<td class="family-name">' + t.name + '</td>' +
+      '<td>' + t.target + '</td>' +
+      '<td>' + t.size + '</td>' +
+      '<td>' + t.duration + '</td>' +
+      '<td>' + t.vendor + '</td>' +
+    '</tr>'
+  ).join('');
+
+  showModal({
+    eyebrow: 'Bridge training · 4 tracks',
+    title: 'Schedule bridge training for ' + total + ' people',
+    body:
+      '<p style="font-size:13px;color:var(--grey);margin-bottom:14px;">3–6 month evidence-based tracks. Confirming locks vendor capacity and notifies L&amp;D.</p>' +
+      '<table class="exposure">' +
+        '<thead><tr><th>Track</th><th>Target band</th><th>Size</th><th>Duration</th><th>Vendor</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>',
+    actions:
+      '<button class="btn outline" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn primary" onclick="confirmTraining(' + total + ')">Confirm scheduling</button>'
+  });
+}
+
+function confirmTraining(total) {
+  closeModal();
+  toast('Bridge training scheduled — 4 tracks · ' + total + ' people · L&D notified.');
+}
+
+function openUnionModal() {
+  showModal({
+    eyebrow: 'Union briefing · draft v0.3',
+    title: 'Draft union briefing',
+    body:
+      '<p style="font-size:13px;color:var(--grey);margin-bottom:14px;">Auto-filled from the evidence trail. Every commitment below is backed by Day 45 pilot data.</p>' +
+      '<div class="evidence-list">' +
+        '<div class="evidence-item"><div class="check">✓</div><span class="src">18-month no-involuntary-separation</span><span class="val">Board-approved</span></div>' +
+        '<div class="evidence-item"><div class="check">✓</div><span class="src">Named path or bridge for every at-risk employee</span><span class="val">81% named · 600 bridge</span></div>' +
+        '<div class="evidence-item"><div class="check">✓</div><span class="src">Capability bands co-authored (Day 45)</span><span class="val">4 bands</span></div>' +
+        '<div class="evidence-item"><div class="check">✓</div><span class="src">Voluntary outplacement only for residual cases</span><span class="val">200–400</span></div>' +
+        '<div class="evidence-item"><div class="check">✓</div><span class="src">Joint 30-day review &amp; human sign-off</span><span class="val">Governance</span></div>' +
+      '</div>',
+    actions:
+      '<button class="btn outline" onclick="closeModal()">Close</button>' +
+      '<button class="btn primary" onclick="downloadUnionDraft()">Download draft (.txt)</button>'
+  });
+}
+
+function downloadUnionDraft() {
+  const text = [
+    'PROJECT MERIDIAN — UNION BRIEFING DRAFT v0.3',
+    'Day 90 framework skeleton · auto-filled from evidence',
+    '',
+    '1. PURPOSE',
+    '   18-month no-involuntary-separation framework, co-designed with Serikat Pekerja.',
+    '',
+    '2. COMMITMENTS',
+    '   - 0 involuntary separations through 18 months',
+    '   - Every at-risk employee receives a named path or bridge program',
+    '   - Voluntary outplacement for residual cases (never mass layoff)',
+    '',
+    '3. CAPABILITY BANDS (co-authored Day 45)',
+    '   - Grid Operations B1-B2 · 1,800 people',
+    '   - IT / OT Support B2-B3 · 1,200 people',
+    '   - Customer Service B1-B2 · 800 people',
+    '   - Metering Ops Supervisor B4 · 400 people',
+    '',
+    '4. GOVERNANCE',
+    '   - Joint review every 30 days',
+    '   - Evidence-based decisions; human sign-off required',
+    '   - Escalation path for low-confidence cases',
+    '',
+    '5. NEXT STEPS',
+    '   - Day 90: framework agreement draft',
+    '   - Day 120: first joint review',
+    '',
+    'Generated from Project Meridian Director\u2019s Console.'
+  ].join('\n');
+
+  downloadBlob(text, 'text/plain;charset=utf-8;', 'meridian-union-briefing-draft.txt');
+  closeModal();
+  toast('Union briefing draft downloaded — Day 90 framework skeleton.');
+}
+
+function openReviewModal() {
+  const low = [];
+  Object.keys(EMPLOYEES).forEach(bandId => {
+    const band = BANDS.find(b => b.id === bandId);
+    EMPLOYEES[bandId].forEach(e => {
+      if (e.confidence === 'low') low.push({ e: e, band: band });
+    });
+  });
+
+  const rows = low.map(item =>
+    '<tr>' +
+      '<td class="family-name">' + item.e.name + '</td>' +
+      '<td>' + item.e.curTitle + '</td>' +
+      '<td>' + item.e.region + '</td>' +
+      '<td>' + item.band.name + '</td>' +
+      '<td><span class="badge low"><span class="dot"></span> Low</span></td>' +
+    '</tr>'
+  ).join('');
+
+  showModal({
+    eyebrow: 'Human review · ' + low.length + ' sampled · 47 total flagged',
+    title: 'Flag low-confidence cases',
+    body:
+      '<p style="font-size:13px;color:var(--grey);margin-bottom:14px;">Individual redeployment is not decided for these cases. Aggregate planning only — escalate to HRBP for human review.</p>' +
+      '<table class="exposure">' +
+        '<thead><tr><th>Name</th><th>Current title</th><th>Region</th><th>Target band</th><th>Confidence</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>',
+    actions:
+      '<button class="btn outline" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn primary" onclick="sendToHRBP()">Send to HRBP queue</button>'
+  });
+}
+
+function sendToHRBP() {
+  closeModal();
+  toast('Sent to HRBP queue — 47 cases flagged for human review.');
+}
+
+function downloadBlob(content, mime, filename) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* =====================================================
    SANKEY DIAGRAM
-   Flows: 6,000 Field Metering people → 5 destinations
    ===================================================== */
 function renderSankey() {
   const svg = document.getElementById('sankey-svg');
@@ -1375,8 +1641,8 @@ function renderSankey() {
   const total = 6000;
   const gap = 10;
   const innerTop = 40;
-  const innerH = H - 80;                       // 340
-  const availH = innerH - gap * 5;             // 290
+  const innerH = H - 80;
+  const availH = innerH - gap * 5;
   const scale = availH / total;
 
   const flows = [
@@ -1388,7 +1654,6 @@ function renderSankey() {
     { id:'managed', label:'Managed transition',  sub:'attrition/retirement', value:300,  color:'#D95D39' },
   ];
 
-  // Destination layout (right column)
   let destY = innerTop;
   const destPositions = flows.map(f => {
     const h = f.value * scale;
@@ -1397,14 +1662,12 @@ function renderSankey() {
     return pos;
   });
 
-  // Source node layout (left column) — centered on destination span
-  const sourceH = total * scale;                     // 290
-  const sourceY = innerTop + (innerH - sourceH) / 2; // 65
+  const sourceH = total * scale;
+  const sourceY = innerTop + (innerH - sourceH) / 2;
   const sourceX = 140, sourceW = 24;
   const destX = 760, destW = 24;
-  const midX = (sourceX + sourceW + destX) / 2;      // 462
+  const midX = (sourceX + sourceW + destX) / 2;
 
-  // Build links
   let sourceOffset = sourceY;
   const links = destPositions.map(d => {
     const sy = sourceOffset;
@@ -1420,14 +1683,12 @@ function renderSankey() {
     return '<path d="' + path + '" fill="' + d.color + '" fill-opacity="0.32" stroke="' + d.color + '" stroke-opacity="0.55" stroke-width="1" />';
   });
 
-  // Source node + label
   const sourceNode =
     '<rect x="' + sourceX + '" y="' + sourceY + '" width="' + sourceW + '" height="' + sourceH + '" fill="#0F2A47" rx="4" />' +
     '<text x="' + (sourceX - 14) + '" y="' + (sourceY + sourceH / 2 - 8) + '" text-anchor="end" font-size="14" font-weight="700" fill="#0F2A47">Field Metering</text>' +
     '<text x="' + (sourceX - 14) + '" y="' + (sourceY + sourceH / 2 + 10) + '" text-anchor="end" font-size="11" fill="#6B7280">6,000 people at risk</text>' +
     '<text x="' + (sourceX - 14) + '" y="' + (sourceY + sourceH / 2 + 26) + '" text-anchor="end" font-size="10" fill="#9CA3AF" font-style="italic">task decomposition v1.2</text>';
 
-  // Destination nodes + labels
   const destNodes = destPositions.map(d => {
     const isSmall = d.h < 26;
     const labelY = d.y + d.h / 2 + (isSmall ? 4 : -6);
@@ -1502,7 +1763,6 @@ function renderEvidence() {
   const band = BANDS.find(b => b.id === state.selectedBand);
   const employees = EMPLOYEES[state.selectedBand];
 
-  // ---------- List view ----------
   if (!state.selectedEmployee) {
     title.textContent = band.name + ' · ' + band.count.toLocaleString() + ' people';
     panel.innerHTML =
@@ -1525,7 +1785,6 @@ function renderEvidence() {
     return;
   }
 
-  // ---------- Detail view ----------
   const emp = employees.find(e => e.id === state.selectedEmployee);
   if (!emp) { state.selectedEmployee = null; return renderEvidence(); }
 
@@ -1655,61 +1914,4 @@ function renderExposure() {
     return;
   }
 
-  tbody.innerHTML = filtered.map(f => {
-    const barColor = f.pct >= 60 ? 'var(--red)'
-                   : f.pct >= 30 ? 'var(--amber)'
-                   : 'var(--teal)';
-    const confClass = f.conf === 'high' ? 'measured'
-                    : f.conf === 'med'  ? 'inferred'
-                    : 'low';
-    const confLabel = f.conf === 'high' ? 'High'
-                    : f.conf === 'med'  ? 'Medium'
-                    : 'Low';
-    const clickable = f.name.trim() === 'Field Metering';
-    const rowAttr = clickable ? 'onclick="navigate(\'redeployment\')"' : '';
-    const pathTag = clickable
-      ? ' <span style="font-size:10px;color:var(--amber-txt);font-weight:700;">→ path</span>'
-      : '';
-
-    return '' +
-      '<tr ' + rowAttr + '>' +
-        '<td class="family-name">' + f.name + pathTag + '</td>' +
-        '<td class="pop">' + f.pop.toLocaleString() + '</td>' +
-        '<td>' +
-          '<div class="exposure-meter">' +
-            '<div class="track"><div class="fill" style="width: ' + f.pct + '%; background: ' + barColor + ';"></div></div>' +
-            '<span class="pct">' + f.pct + '%</span>' +
-          '</div>' +
-        '</td>' +
-        '<td>' + f.driver + '</td>' +
-        '<td><span class="badge ' + confClass + '"><span class="dot"></span> ' + confLabel + '</span></td>' +
-      '</tr>';
-  }).join('');
-}
-
-function filterExposure(value) {
-  state.filterSearch = (value || '').trim().toLowerCase();
-  renderExposure();
-}
-
-/* =====================================================
-   FILTER PILLS
-   ===================================================== */
-document.querySelectorAll('.filter-pill').forEach(pill => {
-  pill.addEventListener('click', () => {
-    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-    pill.classList.add('active');
-    state.filterConfidence = pill.dataset.filter || 'all';
-    renderExposure();
-  });
-});
-
-/* =====================================================
-   INIT
-   ===================================================== */
-renderSankey();
-renderBands();
-renderExposure();
-</script>
-</body>
-</html>
+  tbody.innerHTML = filtered.map(f
